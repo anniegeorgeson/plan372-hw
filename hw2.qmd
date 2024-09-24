@@ -4,3 +4,112 @@ author: "Annie Georgeson"
 format: html
 editor: visual
 ---
+
+Load the necessary libraries
+
+```{r}
+library(tidyverse)
+library(lubridate)
+```
+
+Load the data from CSV.
+
+```{r}
+data = read.csv(here::here("Fire_Incidents.csv"))
+```
+
+Extract the first few rows and all columns to see what you're looking at.
+
+```{r}
+head(data)
+```
+
+There are 20 columns
+
+X, Y – longitude and latitude of incident
+
+OBJECTID, incident_number – numeric identifiers for each incident
+
+incident_type – numeric code for the type of the incident (e.g. house fire, smell of gas, etc)
+
+incident_type_description – plain-English description of the incident type code
+
+arrive_date_time – when firefighters arrived at the scene of the incident
+
+dispatch_date_time – when the call came in and firefighters were dispatched to the incident
+
+cleared_date_time – when firefighters cleared the incident and left the scene
+
+exposure – if the fire spread from another fire (e.g. a house fire started by a car fire)
+
+platoon – which shift responded to the incident
+
+station – which fire station responded to the incident
+
+address, address2 – address and address line 2 for the incident
+
+apt_room – apartment or suite number, if applicable
+
+GlobalID – numeric identifier
+
+CreationDate, EditDate – when the incident was entered into the system, and when the record was last edited
+
+Creator, Editor – who entered the incident, and who edited it most recently
+
+# 1) Average time it takes Wake County to respond to incidents
+
+```{r}
+# Convert the date-time columns 
+data$dispatch_date_time <- ymd_hms(data$dispatch_date_time)
+data$arrive_date_time <- ymd_hms(data$arrive_date_time)
+
+# Calculate response time in seconds
+data$response_time <- as.numeric(difftime(data$arrive_date_time, data$dispatch_date_time, units = "secs"))
+
+# Calculate the average response time in minutes
+average_response_time_minutes <- mean(data$response_time, na.rm = TRUE) / 60
+
+# Display the average response time in minutes
+average_response_time_minutes
+
+```
+
+#### The average response time is approximately 5.3 minutes.
+
+# 2) Varying response times by different stations
+
+```{r}
+# Group by station and calculate average response time
+library(dplyr)
+
+average_response_by_station <- data |>
+  group_by(station) |>
+  summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
+
+# Display stations with the highest and lowest response times
+arrange(average_response_by_station, mean_response_time)
+
+```
+
+#### Station 13 has the lowest average response time & Station 29 has the highest average response time.
+
+# 3) Trend of Wake County Fire's response time over time
+
+```{r}
+# Extract the year from the dispatch date-time
+data$year <- year(data$dispatch_date_time)
+
+# Group by year and calculate average response time per year
+response_time_by_year <- data |>
+  group_by(year) |>
+  summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
+
+# Display the trend on a plot
+ggplot(response_time_by_year, aes(x=year, y=mean_response_time)) +
+  geom_line()
+
+```
+
+#### The response times for Wake County Fire have stayed relatively consistent with spikes in response time being seen towards the end of 2018 and beginning of 2019.
+
+#### Possible reasons for the spikes at these points in time is that the distance that Wake County Fire had to travel might have increased or there might have been a greater amount of incidents that led to a delay in response time.
