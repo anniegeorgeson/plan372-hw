@@ -113,3 +113,54 @@ ggplot(response_time_by_year, aes(x=year, y=mean_response_time)) +
 #### The response times for Wake County Fire have stayed relatively consistent with spikes in response time being seen towards the end of 2018 and beginning of 2019.
 
 #### Possible reasons for the spikes at these points in time is that the distance that Wake County Fire had to travel might have increased or there might have been a greater amount of incidents that led to a delay in response time.
+
+# Time of day that calls are most likely to occur
+
+```{r}
+# Extract hour from the dispatch date-time
+data$hour = hour(data$dispatch_date_time)
+
+# Count incidents by hour
+incidents_by_hour = data |>
+  group_by(hour) |>
+  summarize(count=n())
+
+# Display the distributions of incidents by hour
+incidents_by_hour
+
+```
+
+#### Calls are most likely to occur at the times of 10pm, 9pm, 11pm, and 6pm.
+
+# Amount of calls to Wake County Fire in this dataset, and how many of them are actual fires
+
+```{r}
+# display the total number of calls in the dataset 
+total_calls = nrow(data)
+print(total_calls)
+```
+
+```{r}
+# filter for fire incidents
+fire_incidents = data |>
+  filter(grepl("Fire", incident_type_description, ignore.case = TRUE))
+
+# display the number of fire incidents
+num_fire_incidents = nrow(fire_incidents)
+print(num_fire_incidents)
+```
+
+#### There was a total of 229,047 calls in the data set and 51,976 of those were calls for fire incidents.
+
+# Average response time to actual fires
+
+```{r}
+# Calculate the average response time for fire incidents 
+average_fire_response_time = mean(fire_incidents$response_time, na.rm = TRUE) / 60
+
+average_fire_response_time
+```
+
+#### The average response time for fire incidents was approximately 4.9 minutes, which is faster than the overall response time for all incidents.
+
+# 
