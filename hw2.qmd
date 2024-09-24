@@ -60,14 +60,14 @@ Creator, Editor – who entered the incident, and who edited it most recently
 
 ```{r}
 # Convert the date-time columns 
-data$dispatch_date_time <- ymd_hms(data$dispatch_date_time)
-data$arrive_date_time <- ymd_hms(data$arrive_date_time)
+data$dispatch_date_time = ymd_hms(data$dispatch_date_time)
+data$arrive_date_time = ymd_hms(data$arrive_date_time)
 
 # Calculate response time in seconds
-data$response_time <- as.numeric(difftime(data$arrive_date_time, data$dispatch_date_time, units = "secs"))
+data$response_time = as.numeric(difftime(data$arrive_date_time, data$dispatch_date_time, units = "secs"))
 
 # Calculate the average response time in minutes
-average_response_time_minutes <- mean(data$response_time, na.rm = TRUE) / 60
+average_response_time_minutes = mean(data$response_time, na.rm = TRUE) / 60
 
 # Display the average response time in minutes
 average_response_time_minutes
@@ -82,7 +82,7 @@ average_response_time_minutes
 # Group by station and calculate average response time
 library(dplyr)
 
-average_response_by_station <- data |>
+average_response_by_station = data |>
   group_by(station) |>
   summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
 
@@ -97,10 +97,10 @@ arrange(average_response_by_station, mean_response_time)
 
 ```{r}
 # Extract the year from the dispatch date-time
-data$year <- year(data$dispatch_date_time)
+data$year = year(data$dispatch_date_time)
 
 # Group by year and calculate average response time per year
-response_time_by_year <- data |>
+response_time_by_year = data |>
   group_by(year) |>
   summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
 
@@ -114,7 +114,7 @@ ggplot(response_time_by_year, aes(x=year, y=mean_response_time)) +
 
 #### Possible reasons for the spikes at these points in time is that the distance that Wake County Fire had to travel might have increased or there might have been a greater amount of incidents that led to a delay in response time.
 
-# Time of day that calls are most likely to occur
+# 4) Time of day that calls are most likely to occur
 
 ```{r}
 # Extract hour from the dispatch date-time
@@ -130,9 +130,9 @@ incidents_by_hour
 
 ```
 
-#### Calls are most likely to occur at the times of 10pm, 9pm, 11pm, and 6pm.
+#### Calls are most likely to occur at the times of 10pm, 9pm, and 11pm.
 
-# Amount of calls to Wake County Fire in this dataset, and how many of them are actual fires
+# 5) Amount of calls to Wake County Fire in this data set, and how many of them are actual fires
 
 ```{r}
 # display the total number of calls in the dataset 
@@ -152,7 +152,7 @@ print(num_fire_incidents)
 
 #### There was a total of 229,047 calls in the data set and 51,976 of those were calls for fire incidents.
 
-# Average response time to actual fires
+# 6) Average response time to actual fires
 
 ```{r}
 # Calculate the average response time for fire incidents 
@@ -163,4 +163,57 @@ average_fire_response_time
 
 #### The average response time for fire incidents was approximately 4.9 minutes, which is faster than the overall response time for all incidents.
 
-# 
+# 2b) Response time for fire incidents depending on the station & stations with the highest and lowest average response time for fires
+
+```{r}
+# Group by station and calculate average response time for fire incidents
+library(dplyr)
+
+average_fire_response_by_station = fire_incidents |>
+  group_by(station) |>
+  summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
+
+# Display stations with the highest and lowest response times
+arrange(average_fire_response_by_station, mean_response_time)
+
+```
+
+#### Station 23 has the highest average response time for fire incidents and Station 1 has the lowest average response time for fire incidents.
+
+# 3b) Trend of Wake County Fire's response times for fire incidents
+
+```{r}
+fire_incidents$year = year(fire_incidents$dispatch_date_time)
+
+# Group by year and calculate average response time for fire incidents per year
+fire_response_time_by_year= fire_incidents |>
+  group_by(year) |>
+  summarise(mean_response_time = mean(response_time, na.rm = TRUE) / 60)
+
+# Display the trend on a plot
+ggplot(fire_response_time_by_year, aes(x=year, y=mean_response_time)) +
+  geom_line()
+
+```
+
+#### The response times for fire incidents for Wake County has been variable over time. There are quite a few spikes being seen in the approximate years of 2008/2009, 2014, 2016, and 2018/2019.
+
+#### Some potential reasons for the spikes in response time for specifically fire incidents are that there was a larger amount of fires occurring during these years or that fires during these years were larger and required more personnel which could take longer to mobilize.
+
+# 4b) The times of day fire incidents calls are most likely to occur
+
+```{r}
+# Extract hour from the dispatch date-time
+fire_incidents$hour = hour(fire_incidents$dispatch_date_time)
+
+# Count fire incidents by hour
+fire_incidents_by_hour = fire_incidents |>
+  group_by(hour) |>
+  summarize(count=n())
+
+# Display the distributions of incidents by hour
+fire_incidents_by_hour
+
+```
+
+#### The most common times for fire incidents are 10pm, 9pm, and 8pm.
